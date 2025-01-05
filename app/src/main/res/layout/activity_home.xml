@@ -7,9 +7,9 @@
     android:orientation="vertical"
     android:padding="16dp"
     android:gravity="center_vertical|center_horizontal"
-    tools:context=".MainActivity">
+    tools:context=".HomeActivity">
 
-    <!-- Card for displaying the location and transport mode -->
+    <!-- Card for displaying the location -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,6 +32,13 @@
                 android:textSize="18sp"
                 android:textColor="@color/colorPrimaryDark"
                 android:layout_marginBottom="16dp" />
+            <Button
+                android:id="@+id/startTrackingButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Start Tracking"
+                android:layout_marginTop="16dp" />
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -83,4 +90,12 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Button to navigate to Stats Page -->
+    <Button
+        android:id="@+id/statsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Stats"
+        android:textSize="16sp"
+        android:layout_marginTop="20dp" />
 </LinearLayout>

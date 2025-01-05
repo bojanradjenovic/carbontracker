@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">CarbonTracker</string>
+    <string-array name="transport_modes">
+        <item>Car</item>
+        <item>Bike</item>
+        <item>Bus</item>
+    </string-array>
+    <color name="colorPrimaryDark">#2C3E50</color>  <!-- Dark blue -->
+    <color name="colorAccent">#E74C3C</color>  <!-- Red -->
+
 </resources>
