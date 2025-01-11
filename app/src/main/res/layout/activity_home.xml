@@ -41,6 +41,11 @@
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="16dp" />
 
     <!-- Spinner for Transport Mode -->
     <androidx.cardview.widget.CardView

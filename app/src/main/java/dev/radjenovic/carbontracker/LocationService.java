@@ -1,15 +1,17 @@
 package dev.radjenovic.carbontracker;
 
-import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -32,45 +34,39 @@ public class LocationService extends Service {
 
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
+    private SQLiteDatabase database;
 
     private List<Location> pathLocations = new ArrayList<>();
-    private float distanceTraveled = 0f;  // Store the distance traveled
+    private float distanceTraveled = 0f;  // Track distance
+    private Location previousLocation = null;  // Track the last known location
 
-    // Callback interface to send updates to the activity
-    private LocationUpdateCallback locationUpdateCallback;
-    private Location previousLocation = null; // Store the previous location
+    private LocationUpdateCallback locationUpdateCallback;  // Callback to send updates
 
     @Override
     public void onCreate() {
         super.onCreate();
+        CarbonTrackerDatabase dbHelper = new CarbonTrackerDatabase(this);
+        database = dbHelper.getWritableDatabase();
 
-        // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Location callback to receive updates
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) return;
 
                 for (Location location : locationResult.getLocations()) {
-                    // Add location to path
-                    pathLocations.add(location);
+                    pathLocations.add(location);  // Add to path
 
-                    // Calculate distance if previousLocation is available
+                    // Calculate distance if possible
                     if (previousLocation != null) {
                         distanceTraveled += previousLocation.distanceTo(location);
                     }
 
-                    // Update the previous location
-                    previousLocation = location;
+                    previousLocation = location;  // Update the previous location
 
-                    // Optionally, broadcast the location for updates in the activity
-                    Intent intent = new Intent("LOCATION_UPDATE");
-                    intent.putExtra("location", location);
-                    sendBroadcast(intent);
+                    saveLocationToDatabase(location);  // Store in database
 
-                    // If the callback is set, call it with the new location and distance
                     if (locationUpdateCallback != null) {
                         locationUpdateCallback.onLocationUpdated(location, distanceTraveled);
                     }
@@ -78,9 +74,18 @@ public class LocationService extends Service {
             }
         };
 
-        // Start foreground service with a notification
-        startForegroundService();
-        requestLocationUpdates();
+        startForegroundService();  // Start as foreground service
+        requestLocationUpdates();  // Request location updates
+    }
+
+    // Save location data to the database
+    private void saveLocationToDatabase(Location location) {
+        ContentValues values = new ContentValues();
+        values.put("latitude", location.getLatitude());
+        values.put("longitude", location.getLongitude());
+        values.put("timestamp", System.currentTimeMillis());
+        database.insert("location_data", null, values);
+        Log.d("LocationService", "Saved location to database");
     }
 
     private void startForegroundService() {
@@ -98,8 +103,8 @@ public class LocationService extends Service {
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Tracking Location")
-                .setContentText("Your location is being tracked.")
-                .setSmallIcon(R.drawable.ic_location) // Replace with your app's icon
+                .setContentText("Your location is being tracked")
+                .setSmallIcon(R.drawable.ic_location)
                 .build();
 
         startForeground(NOTIFICATION_ID, notification);
@@ -107,11 +112,11 @@ public class LocationService extends Service {
 
     private void requestLocationUpdates() {
         LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(5000); // Update interval in milliseconds
-        locationRequest.setFastestInterval(2000); // Fastest interval in milliseconds
+        locationRequest.setInterval(5000);  // Update interval in milliseconds
+        locationRequest.setFastestInterval(2000);  // Fastest interval
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Location permission not granted", Toast.LENGTH_SHORT).show();
             stopSelf();
             return;
@@ -124,6 +129,9 @@ public class LocationService extends Service {
     public void onDestroy() {
         super.onDestroy();
         fusedLocationClient.removeLocationUpdates(locationCallback);
+        if (database != null) {
+            database.close();  // Close the database
+        }
     }
 
     @Nullable
@@ -132,30 +140,28 @@ public class LocationService extends Service {
         return new LocalBinder();
     }
 
-    // Add this inner class for binding the service
     public class LocalBinder extends android.os.Binder {
         public LocationService getService() {
             return LocationService.this;
         }
     }
 
-    // Method to set the callback for location updates
+    // Setter for callback
     public void setLocationUpdateCallback(LocationUpdateCallback callback) {
         this.locationUpdateCallback = callback;
     }
 
-    // Callback interface for location updates
+    // Interface for location updates
     public interface LocationUpdateCallback {
         void onLocationUpdated(Location location, float distanceTraveled);
     }
 
-    // Method to get the total distance traveled
-    public float getDistanceTraveled() {
-        return distanceTraveled;
-    }
-
-    // Method to get the list of locations
+    // Getters for the path and distance
     public List<Location> getPathLocations() {
         return pathLocations;
+    }
+
+    public float getDistanceTraveled() {
+        return distanceTraveled;
     }
 }
