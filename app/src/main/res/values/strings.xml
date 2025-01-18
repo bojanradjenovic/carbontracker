@@ -8,7 +8,5 @@
             <item>Train</item>
         </string-array>
 
-    <color name="colorPrimaryDark">#2C3E50</color>  <!-- Dark blue -->
-    <color name="colorAccent">#E74C3C</color>  <!-- Red -->
 
 </resources>

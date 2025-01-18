@@ -20,22 +20,24 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
-
-    private TextView locationTextView, carbonFootprintTextView;
+    private String selectedMode = "Car"; // Default mode
+    private TextView carbonFootprintTextView;
     private Spinner transportModeSpinner;
     private Button statsButton, startTrackingButton;
 
@@ -43,56 +45,50 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationService locationTrackingService;
     private boolean isBound = false;
 
-    private MapView mapView;
     private GoogleMap googleMap;
+    private List<Location> pathLocations = new ArrayList<>();
+    private float totalDistance = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Initialize views
-        locationTextView = findViewById(R.id.locationTextView);
         carbonFootprintTextView = findViewById(R.id.carbonFootprintTextView);
         transportModeSpinner = findViewById(R.id.transportModeSpinner);
         statsButton = findViewById(R.id.statsButton);
         startTrackingButton = findViewById(R.id.startTrackingButton);
-        mapView = findViewById(R.id.mapView);
 
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
+        // Initialize map fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        SupportMapFragment mapFragment = new SupportMapFragment();
+        fragmentManager.beginTransaction()
+                .replace(R.id.mapFragmentContainer, mapFragment)
+                .commit();
+        mapFragment.getMapAsync(this);
 
-        // Initialize spinner with transport modes
         String[] transportModes = {"Car", "Bus", "Train", "Bicycle", "Walking"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, transportModes);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         transportModeSpinner.setAdapter(adapter);
 
-        // Spinner item selection listener
         transportModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedMode = (String) parent.getItemAtPosition(position);
-                Toast.makeText(HomeActivity.this, "Selected mode: " + selectedMode, Toast.LENGTH_SHORT).show();
-                // Add your logic based on the selected mode here
+                selectedMode = (String) parent.getItemAtPosition(position);
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Handle case when nothing is selected
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Navigate to Stats Page
         statsButton.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, StatsActivity.class);
             startActivity(intent);
         });
 
-        // Request permissions
         checkLocationPermission();
 
-        // Start/Stop Tracking Button
         startTrackingButton.setOnClickListener(v -> {
             if (isTracking) {
                 stopTracking();
@@ -100,40 +96,38 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startTracking();
             }
         });
+
+        startLocationService();
     }
 
-    // Check location permission
+    private void startLocationService() {
+        Intent serviceIntent = new Intent(this, LocationService.class);
+        ContextCompat.startForegroundService(this, serviceIntent);
+        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void startTracking() {
+        if (isBound && locationTrackingService != null) {
+            locationTrackingService.startTracking(selectedMode);
+            startTrackingButton.setText("Stop Tracking");
+            isTracking = true;
+        }
+    }
+
+    private void stopTracking() {
+        if (isBound && locationTrackingService != null) {
+            locationTrackingService.stopTracking();
+            startTrackingButton.setText("Start Tracking");
+            isTracking = false;
+        }
+    }
+
     private void checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         }
     }
 
-    // Start location tracking
-    private void startTracking() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Intent serviceIntent = new Intent(this, LocationService.class);
-            ContextCompat.startForegroundService(this, serviceIntent);
-            bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-            isTracking = true;
-            startTrackingButton.setText("Stop Tracking");
-        } else {
-            checkLocationPermission();
-        }
-    }
-
-    // Stop location tracking
-    private void stopTracking() {
-        if (isBound) {
-            unbindService(serviceConnection);
-            isBound = false;
-        }
-        stopService(new Intent(this, LocationService.class));
-        isTracking = false;
-        startTrackingButton.setText("Start Tracking");
-    }
-
-    // Service connection
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -141,67 +135,37 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             locationTrackingService = binder.getService();
             isBound = true;
 
-            // Set callback for location updates
-            locationTrackingService.setLocationUpdateCallback((location, distanceTraveled) -> {
-                updateMap(locationTrackingService.getPathLocations());
-                locationTextView.setText(String.format(Locale.getDefault(), "Lat: %.5f, Long: %.5f", location.getLatitude(), location.getLongitude()));
-                carbonFootprintTextView.setText(String.format(Locale.getDefault(), "Distance: %.2f km", distanceTraveled / 1000));
+            locationTrackingService.setLocationUpdateCallback((location, distance) -> {
+                pathLocations.add(location);
+                totalDistance = distance;
+                updateMap();
+                carbonFootprintTextView.setText(String.format(Locale.getDefault(), "Distance: %.2f km", totalDistance / 1000));
             });
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             isBound = false;
+            locationTrackingService = null;
         }
     };
 
-    // Update map path
-    private void updateMap(List<Location> pathLocations) {
-        if (googleMap == null || pathLocations.isEmpty()) return;
+    private void updateMap() {
+        if (googleMap != null && !pathLocations.isEmpty()) {
+            googleMap.clear();
+            PolylineOptions polylineOptions = new PolylineOptions();
+            for (Location location : pathLocations) {
+                polylineOptions.add(new LatLng(location.getLatitude(), location.getLongitude()));
+            }
+            googleMap.addPolyline(polylineOptions);
 
-        googleMap.clear();  // Clear old map data
-
-        PolylineOptions polylineOptions = new PolylineOptions();
-        for (Location location : pathLocations) {
-            polylineOptions.add(new LatLng(location.getLatitude(), location.getLongitude()));
-        }
-
-        googleMap.addPolyline(polylineOptions);
-
-        // Move the camera to the last location in the path
-        Location lastLocation = pathLocations.get(pathLocations.size() - 1);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), 15));
-    }
-
-    @Override
-    public void onMapReady(GoogleMap map) {
-        googleMap = map;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mapView.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mapView.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mapView.onDestroy();
-        if (isTracking) {
-            stopTracking();
+            Location lastLocation = pathLocations.get(pathLocations.size() - 1);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), 15));
         }
     }
 
     @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mapView.onLowMemory();
+    public void onMapReady(GoogleMap googleMap) {
+        this.googleMap = googleMap;
     }
 }

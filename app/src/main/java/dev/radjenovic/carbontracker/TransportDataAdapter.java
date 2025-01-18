@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -18,11 +19,6 @@ public class TransportDataAdapter extends RecyclerView.Adapter<TransportDataAdap
 
     public TransportDataAdapter(List<TransportData> transportDataList) {
         this.transportDataList = transportDataList;
-    }
-
-    public void updateData(List<TransportData> newData) {
-        transportDataList = newData;
-        notifyDataSetChanged();
     }
 
     @NonNull
@@ -35,11 +31,12 @@ public class TransportDataAdapter extends RecyclerView.Adapter<TransportDataAdap
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         TransportData data = transportDataList.get(position);
-        holder.transportModeTextView.setText(data.getTransportMode());
-        holder.distanceTextView.setText(String.format(Locale.getDefault(), "%.2f km", data.getDistanceTraveled() / 1000));
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-        holder.timestampTextView.setText(sdf.format(data.getTimestamp()));
+        Date date = new Date(data.getTimestamp());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        holder.transportModeTextView.setText("Mode: " + data.getTransportMode());
+        holder.distanceTextView.setText(String.format("Distance: %.2f km", data.getDistanceTraveled()));
+        holder.co2TextView.setText(String.format("CO2: %.2f kg", data.getCo2Emissions()));
+        holder.timestampTextView.setText(dateFormat.format(date));
     }
 
     @Override
@@ -47,15 +44,22 @@ public class TransportDataAdapter extends RecyclerView.Adapter<TransportDataAdap
         return transportDataList.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public void updateData(List<TransportData> newData) {
+        transportDataList = newData;
+        notifyDataSetChanged();
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView transportModeTextView;
         TextView distanceTextView;
+        TextView co2TextView;
         TextView timestampTextView;
 
-        ViewHolder(View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
             transportModeTextView = itemView.findViewById(R.id.transportModeTextView);
             distanceTextView = itemView.findViewById(R.id.distanceTextView);
+            co2TextView = itemView.findViewById(R.id.co2TextView);
             timestampTextView = itemView.findViewById(R.id.timestampTextView);
         }
     }

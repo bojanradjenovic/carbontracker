@@ -1,106 +1,94 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center_vertical|center_horizontal"
-    tools:context=".HomeActivity">
+    android:padding="@dimen/padding_medium"
+    android:gravity="center_horizontal"
+    tools:context=".HomeActivity"
+    android:background="@color/colorBackground">
 
-    <!-- Card for displaying the location -->
+    <!-- Map Fragment Container -->
+    <FrameLayout
+        android:id="@+id/mapFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:background="@drawable/map_background" />
+
+    <!-- Start Tracking Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:elevation="4dp"
-        android:radius="8dp">
+        android:layout_marginBottom="@dimen/margin_medium"
+        style="@style/CardStyle">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/padding_medium">
 
-            <!-- TextView for Location -->
-            <TextView
-                android:id="@+id/locationTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Location will be displayed here"
-                android:textSize="18sp"
-                android:textColor="@color/colorPrimaryDark"
-                android:layout_marginBottom="16dp" />
             <Button
                 android:id="@+id/startTrackingButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Start Tracking"
-                android:layout_marginTop="16dp" />
-
+                style="@style/ButtonStyle" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-    <com.google.android.gms.maps.MapView
-        android:id="@+id/mapView"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginTop="16dp" />
 
-    <!-- Spinner for Transport Mode -->
+    <!-- Transport Mode Spinner -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:elevation="4dp"
-        android:radius="8dp">
+        android:layout_marginBottom="@dimen/margin_medium"
+        style="@style/CardStyle">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/padding_medium">
 
             <Spinner
                 android:id="@+id/transportModeSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/spinner_background"
-                android:padding="10dp" />
+                android:padding="@dimen/padding_small" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Card for displaying the Carbon Footprint -->
+    <!-- Carbon Footprint Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="4dp"
-        android:radius="8dp">
+        style="@style/CardStyle">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/padding_medium">
 
-            <!-- TextView for Carbon Footprint -->
             <TextView
                 android:id="@+id/carbonFootprintTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Carbon footprint will be displayed here"
-                android:textSize="18sp"
-                android:textColor="@color/colorAccent"
-                android:layout_marginBottom="16dp" />
+                android:text="Distance will be displayed here"
+                style="@style/TextStyle.Body"
+                android:layout_marginBottom="@dimen/margin_small" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Button to navigate to Stats Page -->
+    <!-- Stats Button -->
     <Button
         android:id="@+id/statsButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="View Stats"
-        android:textSize="16sp"
-        android:layout_marginTop="20dp" />
+        style="@style/ButtonStyle"
+        android:layout_marginTop="@dimen/margin_medium" />
 </LinearLayout>
