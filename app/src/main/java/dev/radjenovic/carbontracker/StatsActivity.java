@@ -43,11 +43,13 @@ public class StatsActivity extends AppCompatActivity {
 
     static {
         EMISSION_FACTORS = new HashMap<>();
-        EMISSION_FACTORS.put("Car", 0.121f);     // kg CO2/km
-        EMISSION_FACTORS.put("Bus", 0.089f);    // kg CO2/km
-        EMISSION_FACTORS.put("Train", 0.041f);  // kg CO2/km
-        EMISSION_FACTORS.put("Bicycle", 0.0f);  // kg CO2/km
-        EMISSION_FACTORS.put("Walking", 0.0f);  // kg CO2/km
+        EMISSION_FACTORS.put("Diesel Car", 0.171f); // kg CO2/km
+        EMISSION_FACTORS.put("Petrol Car", 0.170f); // kg CO2/km
+        EMISSION_FACTORS.put("Electric Car", 0.047f); // kg CO2/km
+        EMISSION_FACTORS.put("Bus", 0.027f); // kg CO2/km
+        EMISSION_FACTORS.put("Train", 0.035f); // kg CO2/km
+        EMISSION_FACTORS.put("Bicycle", 0.0f); // kg CO2/km
+        EMISSION_FACTORS.put("Walking", 0.0f); // kg CO2/km
     }
 
     @Override

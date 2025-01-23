@@ -36,7 +36,7 @@ import java.util.Locale;
 public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
-    private String selectedMode = "Car"; // Default mode
+    private String selectedMode = "Diesel Car"; // Default mode
     private TextView carbonFootprintTextView;
     private Spinner transportModeSpinner;
     private Button statsButton, startTrackingButton;
@@ -67,7 +67,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .commit();
         mapFragment.getMapAsync(this);
 
-        String[] transportModes = {"Car", "Bus", "Train", "Bicycle", "Walking"};
+        String[] transportModes = {"Diesel Car", "Petrol Car", "Electric Car", "Bus", "Train", "Bicycle", "Walking"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, transportModes);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         transportModeSpinner.setAdapter(adapter);
