@@ -39,8 +39,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String selectedMode = "Diesel Car"; // Default mode
     private TextView carbonFootprintTextView;
     private Spinner transportModeSpinner;
-    private Button statsButton, startTrackingButton;
-
+    private Button statsButton, startTrackingButton, achievementsButton;
     private boolean isTracking = false;
     private LocationService locationTrackingService;
     private boolean isBound = false;
@@ -57,6 +56,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         carbonFootprintTextView = findViewById(R.id.carbonFootprintTextView);
         transportModeSpinner = findViewById(R.id.transportModeSpinner);
         statsButton = findViewById(R.id.statsButton);
+        achievementsButton = findViewById(R.id.achievementsButton);
         startTrackingButton = findViewById(R.id.startTrackingButton);
 
         // Initialize map fragment
@@ -84,6 +84,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         statsButton.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, StatsActivity.class);
+            startActivity(intent);
+        });
+        achievementsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, AchievementsActivity.class);
             startActivity(intent);
         });
 

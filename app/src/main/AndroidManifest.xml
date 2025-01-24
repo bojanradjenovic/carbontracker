@@ -42,7 +42,8 @@
         <activity
             android:name=".StatsActivity"
             android:label="Stats" />
-
+        <activity android:name=".AchievementsActivity"
+            android:label="Achievements"/>
     </application>
 
 </manifest>
